@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Build a Blog</h1>
+    </br>
+    <hr />
+    
+    {% if blog|length == 0 %}
+    <p>No blog posts yet</p>
+    {% else %}
+
+        
+            {% for posts in blog %}  
+            <h2>{{posts.title}}</h2>
+            <hr />
+            <p>{{posts.body}}</p>
+            <hr />
+               <form action='/blog' method="POST">
+        
+    
+            {% endfor %}
+        
+
+    {% endif %}
+    
+
+{% endblock %}
+
