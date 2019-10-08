@@ -9,16 +9,17 @@
     <p>No blog posts yet</p>
     {% else %}
 
+
         
-            {% for posts in blog %}  
-            <h2>{{posts.title}}</h2>
+        {% for posts in blog %}  
+            <a href="/blog?id={{posts.id}}"><h2>{{posts.title}}</h2></a>
             <hr />
             <p>{{posts.body}}</p>
             <hr />
-               <form action='/blog' method="POST">
+            
         
     
-            {% endfor %}
+        {% endfor %}
         
 
     {% endif %}

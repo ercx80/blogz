@@ -2,19 +2,31 @@
 
 {% block content %}
 <h1>Add A New Blog</h1>
-    <form action = '/new_post' method='post'>
-        <label>
-            Title for new blog:
-            </br>
-            <input type="text" name='title' />
-        </label>
+    <form  method='post'>
+        <label>Title for new blog:</label>
+            
+        </br>
+        <input type="text" name='new' value = '{{request.form['new']}}'/>
+        
+        {%if name_error %} 
+        <div class = error>{{name_error}}</div>  
+        {%endif%} 
+        
+        
+         {{request.form['username']}}'
         </br>
         </br>
-        <label>
-            Your new entry:
-            </br>
-            <textarea rows='8' name='blog'></textarea>
-        </label>
+        <label>Your new entry:</label>
+            
+        </br>
+        <textarea rows='8' name='blog' value = '{{request.form['blog']}}'></textarea>
+        
+        {%if body_error %} 
+        <div class = error>{{body_error}}</div>  
+        {%endif%} 
+        
+        
+         
         </br>
         <input type="submit" value='add blog' />
     </form>
