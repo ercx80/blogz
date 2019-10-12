@@ -96,11 +96,11 @@ def new_post():
 @app.route('/login', methods=['POST' ,'GET'])
 def login():
     if request.method == 'POST':
-        name = request.form['username']
+        username = request.form['username']
         password = request.form['password']
-        user = User.query.filter_by(name=name).first()#this line verifies the user password to log the user in
+        user = User.query.filter_by(username=username).first()#this line verifies the user password to log the user in
         if user and user.password == password:#this conditional checks if the user is in the system's database.
-            session['username'] = name #the session object is used to store data to be remebered by the databse
+            session['username'] = username #the session object is used to store data to be remebered by the databse
             #flash("Logged in")
             return redirect('/')
         #else:
@@ -111,15 +111,15 @@ def login():
 @app.route('/signup', methods=['POST', 'GET'])
 def signup():
     if request.form == 'POST':
-        name = request.form['username']
-        passWord = request.form['password']
+        username = request.form['username']
+        password = request.form['password']
         verify = request.form['verify_pass']
-        current_user = User.query.filter_by(name=name).first()
+        current_user = User.query.filter_by(username=username).first()
         if not current_user:
-            new_user = User(name, passWord)
+            new_user = User(username, password)
             db.session.add(new_user)
             db.session.commit()
-            session['username']=name
+            session['username']=username
             return redirect('/new_post')
         
             #TODO return a message
@@ -130,7 +130,7 @@ def signup():
 @app.route('/logout') 
 def logout():
     del session['username']
-    return redirect('/')   
+    return redirect('/blog')   
 
  
 
