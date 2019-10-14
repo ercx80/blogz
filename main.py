@@ -12,7 +12,7 @@ class Blog(db.Model): #the class represents the data that will be stored in the 
     
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(120))
-    body = db.Column(db.String(120))
+    body = db.Column(db.Text(120))
     owner_id = db.Column(db.Integer, db.ForeignKey('user.id'))#this property links the Blog model with the User class primary key. It links the user ID to the blog post. 
 
     
@@ -34,28 +34,34 @@ class User(db.Model):
 
 @app.before_request
 def require_login():
-    allowed_routes = ['login', 'signup']
+    allowed_routes = ['login', 'signup', 'index', 'blog']
     if request.endpoint not in allowed_routes and 'username' not in session:
         redirect('/login')
     
     
 
 
-        
-
-@app.route('/')
+@app.route('/', methods=['POST', 'GET'])
 def index():
-    return render_template('index.html')
+    users = User.query.all()
+    return render_template('index.html', users = users)
 
     
 
-@app.route('/blog', methods=[ 'GET']) #this handler has a GET method because it sends a get request to the database. No data is posted.
+@app.route('/blog', methods=[ 'POST','GET']) #this handler has a GET method because it sends a get request to the database. No data is posted.
 def blog():
+    if session:
+        owner = User.query.filter_by(username = session['username']).first()
     blog_id = request.args.get('id')
+    user_id = request.args.get('id')
     if blog_id == None:
-        blog = Blog.query.all() #this line will query the blog entries from the database
-        return render_template('main_blog.html', blog=blog) #This line renders the main blog page along with the posts.
-
+        posts = Blog.query.filter_by(id = blog_id).all() #this line will query the blog entries by ID from the database
+        
+        return render_template('main_blog.html', posts=posts, blog_id=blog_id) #This line renders the main blog page along with the posts.
+    elif user_id==None:
+        
+        posts=Blog.query.filter_by(owner_id = user_id).all()
+        return render_template('main_blog.html', posts=posts)
     else:
         posts = Blog.query.get(blog_id)
         return render_template('individual_entry.html', posts=posts)
@@ -68,63 +74,112 @@ def blog():
 
 @app.route('/new_post', methods=[ 'POST', 'GET'])#This route gest both get and post, because it posts to the database, and it gets the form to load. 
 def new_post():
+    
+    blog_name = ""
+    entry = ""
+    name_error = ""
+    body_error = ""
+    
     if request.method == 'POST':
+
         blog_name = request.form['new']
         entry = request.form['blog']            #This if statement gets the data from the form and creates an object from the Blog class.
+        owner = User.query.filter_by(username=session['username'].first())
         
-        name_error = ""
-        body_error = ""
+       
         if not blog_name:
             name_error = "This field cannot be empty"
         if not entry:
             body_error = "This field cannot be empty"
         if not name_error and not body_error:
-            new_entry = Blog(blog_name, entry)
+            new_entry = Blog(blog_name, entry, owner)
 
         
             db.session.add(new_entry)  #These lines add and commit the data to the database. 
             db.session.commit()
-            return redirect('/blog?id={}'.format(new_entry.id)) #After adding the data to databse, it redirects back to the main blog page.
-        else:
-            return render_template('new_blog.html',name_error=name_error,body_error=body_error,blog_name=blog_name,entry=entry) 
+            blog_id=Blog.query.order_by(Blog.id.desc()).first()
+            user = owner
+            return redirect('/blog?id={}&user={}'.format(new_entry.id, user.username)) #After adding the data to databse, it redirects back to the main blog page.
         
-    return render_template('new_blog.html')
+        
+    return render_template('new_blog.html', title="Add a new blog", blog_name=blog_name, entry=entry,name_error = name_error,body_error=body_error)
 
 
 
 
 @app.route('/login', methods=['POST' ,'GET'])
 def login():
+    username = " "
+    username_error=""
+    password_error = ""
+    incorrect_username=""
+    
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        user = User.query.filter_by(username=username).first()#this line verifies the user password to log the user in
+        
+        
+   
+        user = User.query.filter_by(username=username).first()#this line verifies the user password to log the user in.
+        if not user:
+            incorrect_username= "User does not exist"
+            if username==" ":
+                username_error="This field cannot be empty"
+        if not password:
+            password_error="This field cannot be empty"
+        if user and user.password != password:
+            password_error= "You entered the wrong password"
+
+       
         if user and user.password == password:#this conditional checks if the user is in the system's database.
             session['username'] = username #the session object is used to store data to be remebered by the databse
             #flash("Logged in")
-            return redirect('/')
-        #else:
-            #flash('User password incorrect, or user does not exist', 'error')
+            return redirect('/new_post')
+   
 
-    return render_template('login.html')
+    return render_template('login.html', username=username,username_error=username_error,password_error=password_error,incorrect_username=incorrect_username)
 
 @app.route('/signup', methods=['POST', 'GET'])
 def signup():
-    if request.form == 'POST':
+    username = " "
+    username_error=""
+    password_error = ""
+    verify_error=""
+    if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
         verify = request.form['verify_pass']
+       
+       
         current_user = User.query.filter_by(username=username).first()
-        if not current_user:
-            new_user = User(username, password)
-            db.session.add(new_user)
-            db.session.commit()
-            session['username']=username
-            return redirect('/new_post')
         
-            #TODO return a message
+        if len(username)<3:
+            username_error="The username must be longer than 3 characters"
+            if username==" ":
+                username_error="This field cannot be blank"
+        if password !=verify:
+            password_error="Passwords do not match"
+            verify_error="Passwords do not match"
+        if len(password)<3:
+            password_error="Password must be longer than 3 characters"
+            if password ==" ":
+                password_error="Field cannot be blank"
+        if password != verify:
+            password_error="Passwords do not match"
+            verify_error="Passwords do not match"
+        if not username_error and not password_error and not verify_error:
+            if not current_user:
+                new_user = User(username, password)
+                db.session.add(new_user)
+                db.session.commit()
+                session['username']=username
+                return redirect('/new_post')
+            else:
+                username_error="This username is already taken"
+        
             
-    return render_template('signup.html')
+            
+    return render_template('signup.html', username=username,username_error=username_error, password_error=password_error,verify_error=verify_error)
     
 
 @app.route('/logout') 

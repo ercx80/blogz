@@ -6,15 +6,17 @@
     <hr />
     
     {% if blog|length == 0 %}
-    <p>No blog posts yet</p>
+    <p>No blog posts yet <a href="/new_post">Write your first post</a></p></p>
     {% else %}
 
 
         
         {% for posts in blog %}  
+            
             <a href="/blog?id={{posts.id}}"><h2>{{posts.title}}</h2></a>
             <hr />
             <p>{{posts.body}}</p>
+            <p id="author">Written by <a href="blog?user={{post.owner.id}}">{{post.owner.username}}</a>.</p>
             <hr />
             
         

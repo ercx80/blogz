@@ -3,22 +3,29 @@
 {% block content %}
 <h1>Login</h1>
 
-<form action="/login" method="post">
+<form action="/login" method="POST">
     <table>
         <tr>
             <td><label for="username">Username</label></td>
             <td>
-                <input name="username" type="text" value="{{ username }}">
+                <input id = 'username'name="username" type="text" value="{{ username }}">
             </td>
+        </tr>
+        <tr>
+            <td class="error">{{username_error}}</td>
         </tr>
         <tr>
             <td><label for="password">Password</label></td>
             <td>
-                <input name="password" type="password">
+                <input name="password" type="password" id="password">
             </td>
         </tr>
+        <tr>
+            <td class="error">{{password_error}}</td>
+        </tr>
+
     </table>
-    <input type="submit" value="Submit">
+    <input type="submit" value="Login">
 </form>
 <p>Don't have an account?<a href="/signup">Create one!</a></p>
 {% endblock %}

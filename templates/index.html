@@ -2,4 +2,13 @@
 
 {% block content %}
 <h1>Blog Users </h1>
+{% if users|length == 0 %}
+    <p>No users registered<a href="/signup">Register here!</a></p>
+
+{% else %}
+    <ul id="blogs">
+    {% for user in users %}
+        <li><a href="/blog?user={{user.id}}">{{user.username}}</a></li>
+    {% endfor %}
+{% endif %}
 {% endblock %}
