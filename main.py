@@ -36,7 +36,7 @@ class User(db.Model):
 def require_login():
     allowed_routes = ['login', 'signup', 'index', 'blog']
     if request.endpoint not in allowed_routes and 'username' not in session:
-        redirect('/login')
+        return redirect('/login')
     
     
 
@@ -48,28 +48,26 @@ def index():
 
     
 
-@app.route('/blog', methods=[ 'POST','GET']) #this handler has a GET method because it sends a get request to the database. No data is posted.
+@app.route('/blog', methods=['POST','GET']) #this handler has a GET method because it sends a get request to the database. No data is posted.
 def blog():
     if session:
-        owner = User.query.filter_by(username = session['username']).first()
-    blog_id = request.args.get('id')
-    user_id = request.args.get('id')
-    if blog_id == None:
+        owner = User.query.filter_by(username= session['username']).first()
+    
+    if 'id' in request.args: #this line checks if the word "id" is in the Get request.
+        blog_id = request.args.get('id') #this line assigns the id to the variable blog_id
         posts = Blog.query.filter_by(id = blog_id).all() #this line will query the blog entries by ID from the database
         
         return render_template('main_blog.html', posts=posts, blog_id=blog_id) #This line renders the main blog page along with the posts.
-    elif user_id==None:
-        
+    elif 'user' in request.args:
+        user_id = request.args.get('user')
         posts=Blog.query.filter_by(owner_id = user_id).all()
         return render_template('main_blog.html', posts=posts)
     else:
-        posts = Blog.query.get(blog_id)
-        return render_template('individual_entry.html', posts=posts)
+        posts = Blog.query.order_by(Blog.id.desc()).all()
+        return render_template('main_blog.html', posts=posts)
+    
 
-    
-    
-     
-    
+
    
 
 @app.route('/new_post', methods=[ 'POST', 'GET'])#This route gest both get and post, because it posts to the database, and it gets the form to load. 
@@ -80,18 +78,20 @@ def new_post():
     name_error = ""
     body_error = ""
     
+    
     if request.method == 'POST':
 
         blog_name = request.form['new']
         entry = request.form['blog']            #This if statement gets the data from the form and creates an object from the Blog class.
-        owner = User.query.filter_by(username=session['username'].first())
+        
         
        
-        if not blog_name:
+        if blog_name == " ":
             name_error = "This field cannot be empty"
-        if not entry:
+        if entry == " ":
             body_error = "This field cannot be empty"
         if not name_error and not body_error:
+            owner = User.query.filter_by(username=session['username']).first()
             new_entry = Blog(blog_name, entry, owner)
 
         
@@ -99,7 +99,7 @@ def new_post():
             db.session.commit()
             blog_id=Blog.query.order_by(Blog.id.desc()).first()
             user = owner
-            return redirect('/blog?id={}&user={}'.format(new_entry.id, user.username)) #After adding the data to databse, it redirects back to the main blog page.
+            return redirect('/blog?id={}&user={}'.format(blog_id.id, user.username)) #After adding the data to databse, it redirects back to the main blog page.
         
         
     return render_template('new_blog.html', title="Add a new blog", blog_name=blog_name, entry=entry,name_error = name_error,body_error=body_error)
@@ -112,7 +112,7 @@ def login():
     username = " "
     username_error=""
     password_error = ""
-    incorrect_username=""
+    
     
     if request.method == 'POST':
         username = request.form['username']
@@ -122,7 +122,7 @@ def login():
    
         user = User.query.filter_by(username=username).first()#this line verifies the user password to log the user in.
         if not user:
-            incorrect_username= "User does not exist"
+            username_error= "User does not exist"
             if username==" ":
                 username_error="This field cannot be empty"
         if not password:
@@ -133,11 +133,11 @@ def login():
        
         if user and user.password == password:#this conditional checks if the user is in the system's database.
             session['username'] = username #the session object is used to store data to be remebered by the databse
-            #flash("Logged in")
+            
             return redirect('/new_post')
    
 
-    return render_template('login.html', username=username,username_error=username_error,password_error=password_error,incorrect_username=incorrect_username)
+    return render_template('login.html', username=username,username_error=username_error,password_error=password_error)
 
 @app.route('/signup', methods=['POST', 'GET'])
 def signup():
@@ -151,7 +151,7 @@ def signup():
         verify = request.form['verify_pass']
        
        
-        current_user = User.query.filter_by(username=username).first()
+        
         
         if len(username)<3:
             username_error="The username must be longer than 3 characters"
@@ -168,6 +168,7 @@ def signup():
             password_error="Passwords do not match"
             verify_error="Passwords do not match"
         if not username_error and not password_error and not verify_error:
+            current_user = User.query.filter_by(username=username).first()
             if not current_user:
                 new_user = User(username, password)
                 db.session.add(new_user)

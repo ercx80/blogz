@@ -2,12 +2,12 @@
 
 {% block content %}
 <h1>Signup</h1>
-<form action="/signup" method="post">
+<form action="/signup" method="POST">
     <table>
         <tr>
             <td><label for="username">Username</label></td>
             <td>
-                <input name="username" type="text" value="{{ username }}">
+                <input id= "username" name="username" type="text" value="{{ username }}">
             </td>
         </tr>
         <tr>
@@ -16,7 +16,7 @@
         <tr>
             <td><label for="password">Password</label></td>
             <td>
-                <input name="password" type="password">
+                <input name="password" type="password" id="password">
             </td>
         </tr>
          <tr>
@@ -25,13 +25,13 @@
         <tr>
             <td><label for="verify">Verify Password</label></td>
             <td>
-                <input name="verify_pass" type="password">
+                <input name="verify_pass" type="password" id="verify">
             </td>
         </tr>
          <tr>
             <tc class='error'>{{verify_error}}</td>
         </tr> 
     </table>
-    <input type="submit" value="Submit">
+    <input type="submit" value="Sign up!">
 </form>
 {% endblock %}
