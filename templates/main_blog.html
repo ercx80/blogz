@@ -15,7 +15,7 @@
         
         {% for posts in blog %}  
             
-            <h2><a href="/blog?id={{posts.id}}">{{posts.title}}</a></h2>
+            <h2><a href="/blog?id={{posts.owner.username}}">{{posts.title}}</a></h2>
             <hr />
             <p>{{posts.body}}</p>
             <p id="author">Written by <a href="blog?user={{posts.owner.id}}">{{posts.owner.username}}</a>.</p>

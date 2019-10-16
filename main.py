@@ -48,8 +48,9 @@ def index():
 
     
 
-@app.route('/blog', methods=['POST','GET']) #this handler has a GET method because it sends a get request to the database. No data is posted.
+@app.route('/blog', methods=['GET']) #this handler has a GET method because it sends a get request to the database. No data is posted.
 def blog():
+    
     if session:
         owner = User.query.filter_by(username= session['username']).first()
     
@@ -58,14 +59,28 @@ def blog():
         posts = Blog.query.filter_by(id = blog_id).all() #this line will query the blog entries by ID from the database
         
         return render_template('main_blog.html', posts=posts, blog_id=blog_id) #This line renders the main blog page along with the posts.
-    elif 'user' in request.args:
+    ''' elif 'user' in request.args:
         user_id = request.args.get('user')
         posts=Blog.query.filter_by(owner_id = user_id).all()
         return render_template('main_blog.html', posts=posts)
     else:
         posts = Blog.query.order_by(Blog.id.desc()).all()
-        return render_template('main_blog.html', posts=posts)
+        return render_template('main_blog.html', posts=posts) '''
     
+    blog_id = request.args.get('id')
+    user_id = request.args.get('user')
+    if blog_id == None:
+        blog = Blog.query.all() #this line will query the blog entries from the database
+        #posts = Blog.query.filter_by(owner_id=blog_id).all()
+        return render_template('main_blog.html', blog=blog) #This line renders the main blog page along with the posts.
+    if user_id == None:
+        posts = Blog.query.filter_by(owner_id=user_id).all()
+        return render_template('main_blog.html', posts=posts)
+
+
+    else:
+        posts = Blog.query.get(blog_id)
+        return render_template('main_blog.html', posts=posts)
 
 
    
